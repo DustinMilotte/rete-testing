@@ -16,24 +16,49 @@ import HistoryPlugin from "rete-history-plugin";
 
 var audSocket = new Rete.Socket("AudVenture story");
 
+var VueAudControl = {
+  props: ['readonly', 'emitter', 'ikey', 'getData', 'putData'],
+  template: '<input type="text" :readonly="readonly" :value="value" @input="change($event)" @dblclick.stop="" @pointermove.stop=""/>',
+  data() {
+    return {
+      value: 0,
+    }
+  },
+  methods: {
+    change(e){
+      this.value = +e.target.value;
+      this.update();
+    },
+    update() {
+      if (this.ikey)
+        this.putData(this.ikey, this.value)
+      this.emitter.trigger('process');
+    }
+  },
+  mounted() {
+    this.value = this.getData(this.ikey);
+  }
+}
+
+
 class InputControl extends Rete.Control {
-  constructor(key) {
+  constructor(emitter, key, readonly) {
     super(key);
-    // this.render = "js";
-    this.key = key;
+    this.component = VueAudControl;
+    this.props = { emitter, ikey: key, readonly };
+  }
+}
+
+class NumControl extends Rete.Control {
+
+  constructor(emitter, key, readonly) {
+    super(key);
+    this.component = VueNumControl;
+    this.props = { emitter, ikey: key, readonly };
   }
 
-  handler(el, editor) {
-    var input = document.createElement("input");
-    el.appendChild(input);
-
-    var text = this.getData(this.key) || "Some message..";
-
-    input.value = text;
-    this.putData(this.key, text);
-    input.addEventListener("change", () => {
-      this.putData(this.key, input.value);
-    });
+  setValue(val) {
+    this.vueContext.value = val;
   }
 }
 
@@ -45,23 +70,16 @@ class AudComponent extends Rete.Component {
     };
   }
 
-  handler() {
-      // ???
-    var textField = document.createElement("input");
-    this.appendChild(textField);
-    input.value = "enter text here";
-  }
-
   builder(node) {
     var inp1 = new Rete.Input("input", "Input", audSocket);
     var out1 = new Rete.Output("choice1", "Choice", audSocket);
     var out2 = new Rete.Output("choice2", "Choice", audSocket);
-    // var ctrl = new InputControl("text");
+    var ctrl = new InputControl(this.editor, "text");
 
     return (
       node
-        //   .addControl(ctrl)
         .addInput(inp1)
+        .addControl(ctrl)
         .addOutput(out1)
         .addOutput(out2)
     );
@@ -114,7 +132,6 @@ export default {
       editor.view.resize();
       AreaPlugin.zoomAt(editor);
       editor.trigger("process");
-      console.log(editor.toJSON());
     })();
   }
 };
@@ -133,5 +150,19 @@ body {
 xus #rete {
   height: 100vh;
   width: 100vw;
+}
+.control, .input-control{
+    width: 100%;
+    border-radius: 10px;
+    background-color: white;
+    padding: 10px 6px;
+    margin: 10px;
+    border: 1px solid #999;
+    font-size: 110%;
+    width: 170px;
+    height: 50px;
+}
+input {
+  
 }
 </style>
