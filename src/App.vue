@@ -1,6 +1,8 @@
 <template>
   <div id="app">
-    <div id="rete"></div>
+    <div id="rete">
+    </div>
+    <AudNodeForm />
   </div>
 </template>
 
@@ -12,31 +14,32 @@ import ContextMenuPlugin from "rete-context-menu-plugin";
 import AreaPlugin from "rete-area-plugin";
 import CommentPlugin from "rete-comment-plugin";
 import HistoryPlugin from "rete-history-plugin";
+import AudNodeForm from "./components/AudNodeForm"
 // import ConnectionMasteryPlugin from "rete-connection-mastery-plugin";
 
 var audSocket = new Rete.Socket("AudVenture story");
 
 var VueAudControl = {
-  props: ['readonly', 'emitter', 'ikey', 'getData', 'putData'],
-  template: '<input type="text" :readonly="readonly" :value="value" @input="change($event)" @dblclick.stop="" @pointermove.stop=""/>',
+  props: [],
+  template: '<textarea class="text-preview" rows=3 columns=50></textarea>',
   data() {
     return {
       value: 0,
     }
   },
   methods: {
-    change(e){
-      this.value = +e.target.value;
-      this.update();
-    },
-    update() {
-      if (this.ikey)
-        this.putData(this.ikey, this.value)
-      this.emitter.trigger('process');
-    }
-  },
-  mounted() {
-    this.value = this.getData(this.ikey);
+  //   change(e){
+  //     this.value = +e.target.value;
+  //     this.update();
+  //   },
+  //   update() {
+  //     if (this.ikey)
+  //       this.putData(this.ikey, this.value)
+  //     this.emitter.trigger('process');
+  //   }
+  // },
+  // mounted() {
+  //   this.value = this.getData(this.ikey);
   }
 }
 
@@ -46,19 +49,6 @@ class InputControl extends Rete.Control {
     super(key);
     this.component = VueAudControl;
     this.props = { emitter, ikey: key, readonly };
-  }
-}
-
-class NumControl extends Rete.Control {
-
-  constructor(emitter, key, readonly) {
-    super(key);
-    this.component = VueNumControl;
-    this.props = { emitter, ikey: key, readonly };
-  }
-
-  setValue(val) {
-    this.vueContext.value = val;
   }
 }
 
@@ -93,6 +83,9 @@ class AudComponent extends Rete.Component {
 
 export default {
   name: "app",
+  components: {
+    AudNodeForm,
+  },
   mounted() {
     (async () => {
       var container = document.querySelector("#rete");
@@ -132,9 +125,28 @@ export default {
       editor.view.resize();
       AreaPlugin.zoomAt(editor);
       editor.trigger("process");
+
+     
     })();
   }
 };
+
+// class NumControl extends Rete.Control {
+
+//   constructor(emitter, key, readonly) {
+//     super(key);
+//     this.component = VueNumControl;
+//     this.props = { emitter, ikey: key, readonly };
+//   }
+
+//   setValue(val) {
+//     this.vueContext.value = val;
+//   }
+// }
+
+ function handleNodeDblClick(){
+        alert("hello")
+      }
 </script>
 
 <style lang="scss">
@@ -162,7 +174,11 @@ xus #rete {
     width: 170px;
     height: 50px;
 }
-input {
-  
+.text-preview {
+  margin: 0;
+  outline: none;
+  border: none;
 }
 </style>
+
+
