@@ -1,8 +1,7 @@
 <template>
   <div id="app">
-    <div id="rete">
-    </div>
-    <AudNodeForm />
+    <div id="rete"></div>
+    <AudNodeForm v-if="formIsShowing"/>
   </div>
 </template>
 
@@ -14,35 +13,15 @@ import ContextMenuPlugin from "rete-context-menu-plugin";
 import AreaPlugin from "rete-area-plugin";
 import CommentPlugin from "rete-comment-plugin";
 import HistoryPlugin from "rete-history-plugin";
-import AudNodeForm from "./components/AudNodeForm"
+import AudNodeForm from "./components/AudNodeForm";
 // import ConnectionMasteryPlugin from "rete-connection-mastery-plugin";
 
 var audSocket = new Rete.Socket("AudVenture story");
 
 var VueAudControl = {
   props: [],
-  template: '<textarea class="text-preview" rows=3 columns=50></textarea>',
-  data() {
-    return {
-      value: 0,
-    }
-  },
-  methods: {
-  //   change(e){
-  //     this.value = +e.target.value;
-  //     this.update();
-  //   },
-  //   update() {
-  //     if (this.ikey)
-  //       this.putData(this.ikey, this.value)
-  //     this.emitter.trigger('process');
-  //   }
-  // },
-  // mounted() {
-  //   this.value = this.getData(this.ikey);
-  }
-}
-
+  template: "<p>This is dummy text</p>",
+};
 
 class InputControl extends Rete.Control {
   constructor(emitter, key, readonly) {
@@ -66,13 +45,11 @@ class AudComponent extends Rete.Component {
     var out2 = new Rete.Output("choice2", "Choice", audSocket);
     var ctrl = new InputControl(this.editor, "text");
 
-    return (
-      node
-        .addInput(inp1)
-        .addControl(ctrl)
-        .addOutput(out1)
-        .addOutput(out2)
-    );
+    return node
+      .addInput(inp1)
+      .addControl(ctrl)
+      .addOutput(out1)
+      .addOutput(out2);
   }
 
   worker(node, inputs, outputs) {
@@ -84,7 +61,12 @@ class AudComponent extends Rete.Component {
 export default {
   name: "app",
   components: {
-    AudNodeForm,
+    AudNodeForm
+  },
+  data() {
+    return {
+      formIsShowing: false
+    };
   },
   mounted() {
     (async () => {
@@ -119,34 +101,29 @@ export default {
           console.log("process");
           await engine.abort();
           await engine.process(editor.toJSON());
+          addDblClickToNodes();
         }
       );
 
       editor.view.resize();
       AreaPlugin.zoomAt(editor);
       editor.trigger("process");
-
-     
     })();
   }
 };
 
-// class NumControl extends Rete.Control {
+function addDblClickToNodes() {
+  var nodes = document.getElementsByClassName("node");
+  console.log(nodes);
+  for (var i = 0; i < nodes.length; i++) {
+    nodes[i].addEventListener("dblclick", showForm);
+  }
+}
 
-//   constructor(emitter, key, readonly) {
-//     super(key);
-//     this.component = VueNumControl;
-//     this.props = { emitter, ikey: key, readonly };
-//   }
-
-//   setValue(val) {
-//     this.vueContext.value = val;
-//   }
-// }
-
- function handleNodeDblClick(){
-        alert("hello")
-      }
+function showForm(e) {
+  console.log(this.formIsShowing);
+  this.formIsShowing = true;
+}
 </script>
 
 <style lang="scss">
@@ -163,16 +140,17 @@ xus #rete {
   height: 100vh;
   width: 100vw;
 }
-.control, .input-control{
-    width: 100%;
-    border-radius: 10px;
-    background-color: white;
-    padding: 10px 6px;
-    margin: 10px;
-    border: 1px solid #999;
-    font-size: 110%;
-    width: 170px;
-    height: 50px;
+.control,
+.input-control {
+  width: 100%;
+  border-radius: 10px;
+  background-color: white;
+  padding: 10px 6px;
+  margin: 10px;
+  border: 1px solid #999;
+  font-size: 110%;
+  width: 170px;
+  height: 50px;
 }
 .text-preview {
   margin: 0;
