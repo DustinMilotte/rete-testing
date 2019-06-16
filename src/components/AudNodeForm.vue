@@ -4,7 +4,7 @@
            <h2 class="title">
                <textarea name="node-title" id="node-title" cols="50" rows="1" placeholder="enter node title here"></textarea>
            </h2>
-           <button class="btn-close" v-on:click ="saveAndClose">X</button>
+           <button class="btn-close" @click="$emit('close-form')" v-on:click ="saveAndClose">X</button>
        </header>
        <hr>
         <section id="main-section">
@@ -24,14 +24,11 @@ export default {
             //TODO save data to current node
 
             // close form
-            document.getElementById('container').style.display = "none";
+            // this.formIsShowing = false;
+            console.log("save and close");
         }
-    }
-}
-
-function saveAndClose(){
-    alert("hello");
-}
+    },
+}   
 </script>
 
 <style scoped>

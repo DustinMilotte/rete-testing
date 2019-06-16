@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <div id="rete"></div>
-    <AudNodeForm v-if="formIsShowing"/>
+    <AudNodeForm v-if="formIsShowing" v-on:close-form="closeForm"/>
   </div>
 </template>
 
@@ -34,6 +34,7 @@ class InputControl extends Rete.Control {
 class AudComponent extends Rete.Component {
   constructor() {
     super("AudNode");
+    this.render = 'vue';
     this.task = {
       outputs: { text: "output" }
     };
@@ -65,8 +66,18 @@ export default {
   },
   data() {
     return {
-      formIsShowing: false
+      formIsShowing: true,
     };
+  },
+  methods:{
+    closeForm(){
+      this.formIsShowing = false;
+      console.log("close form");
+    },
+    showForm(){
+      this.formIsShowing = true;
+      console.log("show form");
+    }
   },
   mounted() {
     (async () => {
@@ -120,10 +131,10 @@ function addDblClickToNodes() {
   }
 }
 
-function showForm(e) {
-  console.log(this.formIsShowing);
-  this.formIsShowing = true;
-}
+// function showForm(e) {
+//   console.log('show form');
+//   vm.formIsShowing = true;
+// }
 </script>
 
 <style lang="scss">
@@ -158,5 +169,3 @@ xus #rete {
   border: none;
 }
 </style>
-
-
