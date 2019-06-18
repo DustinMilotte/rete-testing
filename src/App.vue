@@ -1,7 +1,12 @@
 <template>
   <div id="app">
     <div id="rete"></div>
-    <AudNodeForm v-if="formIsShowing" v-on:close-form="closeForm"/>
+    <FormNav v-on:log-json="logJson"/>
+    <AudNodeForm
+      v-bind:selectedNodeData="selectedNodeData"
+      v-if="formIsShowing"
+      v-on:close-form="closeForm"
+    />
   </div>
 </template>
 
@@ -14,13 +19,14 @@ import AreaPlugin from "rete-area-plugin";
 import CommentPlugin from "rete-comment-plugin";
 import HistoryPlugin from "rete-history-plugin";
 import AudNodeForm from "./components/AudNodeForm";
+import FormNav from "./components/FormNav";
 // import ConnectionMasteryPlugin from "rete-connection-mastery-plugin";
 
 var audSocket = new Rete.Socket("AudVenture story");
 
 var VueAudControl = {
   props: [],
-  template: "<p>This is dummy text</p>",
+  template: "<p></p>"
 };
 
 class InputControl extends Rete.Control {
@@ -34,7 +40,7 @@ class InputControl extends Rete.Control {
 class AudComponent extends Rete.Component {
   constructor() {
     super("AudNode");
-    this.render = 'vue';
+    this.render = "vue";
     this.task = {
       outputs: { text: "output" }
     };
@@ -55,28 +61,42 @@ class AudComponent extends Rete.Component {
 
   worker(node, inputs, outputs) {
     outputs["num"] = node.id;
-    return { text: node.data.text };
+    return { text: node.data.text, id: node.id };
   }
 }
 
 export default {
   name: "app",
   components: {
-    AudNodeForm
+    AudNodeForm,
+    FormNav
   },
   data() {
     return {
-      formIsShowing: true,
+      formIsShowing: false,
+      selectedNodeData: {},
+      message: "hello message",
+      selectedNodeID: null
     };
   },
-  methods:{
-    closeForm(){
+  methods: {
+    closeForm() {
       this.formIsShowing = false;
       console.log("close form");
     },
-    showForm(){
+    showForm(e) {
       this.formIsShowing = true;
-      console.log("show form");
+      console.log(e);
+    },
+    addDblClickToNodes() {
+      var nodes = document.getElementsByClassName("node");
+      console.log(nodes);
+      for (var i = 0; i < nodes.length; i++) {
+        nodes[i].addEventListener("dblclick", this.showForm);
+      }
+    },
+    logJson() {
+      console.log("log json");
     }
   },
   mounted() {
@@ -100,7 +120,10 @@ export default {
         engine.register(c);
       });
 
-      var n1 = await components[0].createNode({ num: 2 });
+      var n1 = await components[0].createNode({
+        text: "this is the text body",
+        nodeID: 1
+      });
 
       n1.position = [80, 200];
 
@@ -112,9 +135,17 @@ export default {
           console.log("process");
           await engine.abort();
           await engine.process(editor.toJSON());
-          addDblClickToNodes();
+          this.addDblClickToNodes();
+          // console.log(editor.toJSON());
         }
       );
+
+      editor.on("nodeselect", node => {
+        //load selected node info to form
+        // console.log(node.data);
+        this.selectedNodeData = node.data;
+        console.log(this.selectedNodeData, "hello");
+      });
 
       editor.view.resize();
       AreaPlugin.zoomAt(editor);
@@ -123,13 +154,13 @@ export default {
   }
 };
 
-function addDblClickToNodes() {
-  var nodes = document.getElementsByClassName("node");
-  console.log(nodes);
-  for (var i = 0; i < nodes.length; i++) {
-    nodes[i].addEventListener("dblclick", showForm);
-  }
-}
+// function addDblClickToNodes() {
+//   var nodes = document.getElementsByClassName("node");
+//   console.log(nodes);
+//   for (var i = 0; i < nodes.length; i++) {
+//     nodes[i].addEventListener("dblclick", showForm);
+//   }
+// }
 
 // function showForm(e) {
 //   console.log('show form');
@@ -146,6 +177,7 @@ body {
 
 #app {
   height: 100%;
+  background: #333;
 }
 xus #rete {
   height: 100vh;
@@ -167,5 +199,8 @@ xus #rete {
   margin: 0;
   outline: none;
   border: none;
+}
+.selected {
+  background: red;
 }
 </style>

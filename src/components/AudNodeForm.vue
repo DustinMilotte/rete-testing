@@ -4,12 +4,12 @@
            <h2 class="title">
                <textarea name="node-title" id="node-title" cols="50" rows="1" placeholder="enter node title here"></textarea>
            </h2>
-           <button class="btn-close" @click="$emit('close-form')" v-on:click ="saveAndClose">X</button>
+           <button class="btn-close" @click="$emit('close-form')">X</button>
        </header>
        <hr>
         <section id="main-section">
             <h2>Text</h2>
-            <textarea name="main-text-area" id="" cols="40" rows="20" placeholder="enter main dialogue here..."></textarea>
+            <textarea v-model="selectedNodeData.text" name="main-text-area" id="" cols="40" rows="20" placeholder="enter main dialogue here..."></textarea>
             <h2>Attach Audio Files</h2>
             <div id="file-drop-area">drop files here...</div>
         </section>
@@ -28,6 +28,7 @@ export default {
             console.log("save and close");
         }
     },
+    props: ["selectedNodeData"]
 }   
 </script>
 
