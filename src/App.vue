@@ -3,7 +3,7 @@
     <div id="rete"></div>
     <FormNav v-on:log-json="logJson"/>
     <AudNodeForm
-      v-bind:selectedNodeData="selectedNodeData"
+      v-bind:selectedNode="selectedNode"
       v-if="formIsShowing"
       v-on:close-form="closeForm"
     />
@@ -39,7 +39,7 @@ class InputControl extends Rete.Control {
 
 class AudComponent extends Rete.Component {
   constructor() {
-    super("AudNode");
+    super("New Node");
     this.render = "vue";
     this.task = {
       outputs: { text: "output" }
@@ -48,8 +48,8 @@ class AudComponent extends Rete.Component {
 
   builder(node) {
     var inp1 = new Rete.Input("input", "Input", audSocket);
-    var out1 = new Rete.Output("choice1", "Choice", audSocket);
-    var out2 = new Rete.Output("choice2", "Choice", audSocket);
+    var out1 = new Rete.Output("Yes", "Yes", audSocket);
+    var out2 = new Rete.Output("No", "No", audSocket);
     var ctrl = new InputControl(this.editor, "text");
 
     return node
@@ -74,15 +74,14 @@ export default {
   data() {
     return {
       formIsShowing: false,
-      selectedNodeData: {},
-      message: "hello message",
-      selectedNodeID: null
+      selectedNode: {},
+      editor: null
     };
   },
   methods: {
     closeForm() {
       this.formIsShowing = false;
-      console.log("close form");
+      console.log("close form", this.selectedNode);
     },
     showForm(e) {
       this.formIsShowing = true;
@@ -90,13 +89,14 @@ export default {
     },
     addDblClickToNodes() {
       var nodes = document.getElementsByClassName("node");
-      console.log(nodes);
+      // console.log(nodes);
       for (var i = 0; i < nodes.length; i++) {
         nodes[i].addEventListener("dblclick", this.showForm);
       }
     },
     logJson() {
       console.log("log json");
+      console.log(this.editor.toJSON());
     }
   },
   mounted() {
@@ -104,19 +104,19 @@ export default {
       var container = document.querySelector("#rete");
       var components = [new AudComponent()];
 
-      var editor = new Rete.NodeEditor("demo@0.1.0", container);
-      editor.use(ConnectionPlugin);
-      editor.use(VueRenderPlugin);
-      editor.use(ContextMenuPlugin);
-      editor.use(AreaPlugin);
-      editor.use(CommentPlugin);
-      editor.use(HistoryPlugin);
+      this.editor = new Rete.NodeEditor("demo@0.1.0", container);
+      this.editor.use(ConnectionPlugin);
+      this.editor.use(VueRenderPlugin);
+      this.editor.use(ContextMenuPlugin);
+      this.editor.use(AreaPlugin);
+      this.editor.use(CommentPlugin);
+      this.editor.use(HistoryPlugin);
       // editor.use(ConnectionMasteryPlugin);
 
       var engine = new Rete.Engine("demo@0.1.0");
 
       components.map(c => {
-        editor.register(c);
+        this.editor.register(c);
         engine.register(c);
       });
 
@@ -127,29 +127,29 @@ export default {
 
       n1.position = [80, 200];
 
-      editor.addNode(n1);
+      this.editor.addNode(n1);
 
-      editor.on(
+      this.editor.on(
         "process nodecreated noderemoved connectioncreated connectionremoved",
         async () => {
           console.log("process");
           await engine.abort();
-          await engine.process(editor.toJSON());
+          await engine.process(this.editor.toJSON());
           this.addDblClickToNodes();
           // console.log(editor.toJSON());
         }
       );
 
-      editor.on("nodeselect", node => {
+      this.editor.on("nodeselect", node => {
         //load selected node info to form
-        // console.log(node.data);
-        this.selectedNodeData = node.data;
-        console.log(this.selectedNodeData, "hello");
+        console.log("whole node", node);
+        this.selectedNode = node;
+        // console.log("selectedNodeData from nodeselect", this.selectedNodeData);
       });
 
-      editor.view.resize();
-      AreaPlugin.zoomAt(editor);
-      editor.trigger("process");
+      this.editor.view.resize();
+      AreaPlugin.zoomAt(this.editor);
+      this.editor.trigger("process");
     })();
   }
 };
