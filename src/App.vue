@@ -26,20 +26,21 @@ var audSocket = new Rete.Socket("AudVenture story");
 
 var VueAudControl = {
   props: [],
-  template: "<p></p>"
+  template: "<p>{{}}</p>",
+  methods: {}
 };
 
 class InputControl extends Rete.Control {
   constructor(emitter, key, readonly) {
     super(key);
     this.component = VueAudControl;
-    this.props = { emitter, ikey: key, readonly };
+    this.props = { emitter, ikey: key, readonly  };
   }
 }
 
-class AudComponent extends Rete.Component {
+class YesNoNode extends Rete.Component {
   constructor() {
-    super("New Node");
+    super("Yes / No");
     this.render = "vue";
     this.task = {
       outputs: { text: "output" }
@@ -57,6 +58,60 @@ class AudComponent extends Rete.Component {
       .addControl(ctrl)
       .addOutput(out1)
       .addOutput(out2);
+  }
+
+  worker(node, inputs, outputs) {
+    outputs["num"] = node.id;
+    return { text: node.data.text, id: node.id };
+  }
+}
+
+class LeftRightNode extends Rete.Component {
+  constructor() {
+    super("Left / Right");
+    this.render = "vue";
+    this.task = {
+      outputs: { text: "output" }
+    };
+  }
+
+  builder(node) {
+    var inp1 = new Rete.Input("input", "Input", audSocket);
+    var out1 = new Rete.Output("Left", "Left", audSocket);
+    var out2 = new Rete.Output("Right", "Right", audSocket);
+    var ctrl = new InputControl(this.editor, "text");
+
+    return node
+      .addInput(inp1)
+      .addControl(ctrl)
+      .addOutput(out1)
+      .addOutput(out2);
+  }
+
+  worker(node, inputs, outputs) {
+    outputs["num"] = node.id;
+    return { text: node.data.text, id: node.id };
+  }
+}
+
+class OneWayNode extends Rete.Component {
+  constructor() {
+    super("One Way");
+    this.render = "vue";
+    this.task = {
+      outputs: { text: "output" }
+    };
+  }
+
+  builder(node) {
+    var inp1 = new Rete.Input("input", "Input", audSocket);
+    var out1 = new Rete.Output("Output", "Output", audSocket);
+    var ctrl = new InputControl(this.editor, "text");
+
+    return node
+      .addInput(inp1)
+      .addControl(ctrl)
+      .addOutput(out1)
   }
 
   worker(node, inputs, outputs) {
@@ -102,7 +157,7 @@ export default {
   mounted() {
     (async () => {
       var container = document.querySelector("#rete");
-      var components = [new AudComponent()];
+      var components = [new YesNoNode(), new LeftRightNode(), new OneWayNode()];
 
       this.editor = new Rete.NodeEditor("demo@0.1.0", container);
       this.editor.use(ConnectionPlugin);
@@ -121,8 +176,7 @@ export default {
       });
 
       var n1 = await components[0].createNode({
-        text: "this is the text body",
-        nodeID: 1
+        dialogue: ""
       });
 
       n1.position = [80, 200];
@@ -142,9 +196,13 @@ export default {
 
       this.editor.on("nodeselect", node => {
         //load selected node info to form
-        console.log("whole node", node);
+        console.log("all nodes", this.editor);
         this.selectedNode = node;
         // console.log("selectedNodeData from nodeselect", this.selectedNodeData);
+      });
+
+      this.editor.on("zoom", ({ source }) => {
+        return source !== "dblclick";
       });
 
       this.editor.view.resize();
