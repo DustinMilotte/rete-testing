@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <div id="rete"></div>
-    <FormNav v-on:log-json="logJson"/>
+    <JsonSubmit v-on:log-json="logJson"/>
     <AudNodeForm
       v-bind:selectedNode="selectedNode"
       v-if="formIsShowing"
@@ -19,15 +19,28 @@ import AreaPlugin from "rete-area-plugin";
 import CommentPlugin from "rete-comment-plugin";
 import HistoryPlugin from "rete-history-plugin";
 import AudNodeForm from "./components/AudNodeForm";
-import FormNav from "./components/FormNav";
+import JsonSubmit from "./components/JsonSubmit";
 // import ConnectionMasteryPlugin from "rete-connection-mastery-plugin";
 
 var audSocket = new Rete.Socket("AudVenture story");
 
 var VueAudControl = {
-  props: [],
-  template: "<p>{{}}</p>",
-  methods: {}
+  props: ['readonly', 'emitter', 'ikey', 'getData', 'putData'],
+  template:'<p>{{value}}</p>',
+  data() {
+    return {
+      value: this.getData('dialogue'),
+    }
+  },
+  methods: {
+   updateDialoguePreview(){
+     this.value =this.getData('dialogue');
+   }
+  },
+  mounted() {
+    // this.value = this.getData(this.data.dialogue);
+    // this.updateDialoguePreview();
+  }
 };
 
 class InputControl extends Rete.Control {
@@ -124,7 +137,7 @@ export default {
   name: "app",
   components: {
     AudNodeForm,
-    FormNav
+    JsonSubmit
   },
   data() {
     return {
@@ -176,7 +189,7 @@ export default {
       });
 
       var n1 = await components[0].createNode({
-        dialogue: ""
+        dialogue: "hello wo"
       });
 
       n1.position = [80, 200];
